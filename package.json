@@ -17,5 +17,9 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "groq-sdk": "^0.32.0",
+    "mongoose": "^8.18.1"
   }
 }

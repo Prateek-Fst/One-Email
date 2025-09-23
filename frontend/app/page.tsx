@@ -14,10 +14,11 @@ export default function EmailOnebox() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const { emails, loading, error, refetch } = useEmails({
+  const { emails, loading, loadingMore, error, hasMore, loadMore, refetch } = useEmails({
     search: searchQuery,
-    accountId: selectedAccount === "all" ? undefined : selectedAccount,
+    accountId: selectedAccount,
     category: selectedCategory === "all" ? undefined : selectedCategory,
+    perAccount: 5,
   })
 
   const selectedEmail = emails.find((email) => email._id === selectedEmailId)
@@ -46,9 +47,12 @@ export default function EmailOnebox() {
             <EmailList
               emails={emails}
               loading={loading}
+              loadingMore={loadingMore}
               error={error}
+              hasMore={hasMore}
               selectedEmailId={selectedEmailId}
               onEmailSelect={setSelectedEmailId}
+              onLoadMore={loadMore}
             />
           </div>
 

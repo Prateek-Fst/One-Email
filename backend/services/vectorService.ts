@@ -1,9 +1,16 @@
-import OpenAI from "openai"
+import Groq from "groq-sdk"
 import mongoose, { type Document, Schema } from "mongoose"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+let groq: Groq | null = null
+
+function getGroqClient(): Groq {
+  if (!groq) {
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+  }
+  return groq
+}
 
 // Vector document schema for storing embeddings
 interface IVectorDocument extends Document {
@@ -46,7 +53,7 @@ VectorDocumentSchema.index({ "metadata.category": 1 })
 const VectorDocument = mongoose.model<IVectorDocument>("VectorDocument", VectorDocumentSchema)
 
 class VectorService {
-  private readonly EMBEDDING_MODEL = "text-embedding-3-small"
+  private readonly EMBEDDING_MODEL = "llama-3.3-70b-versatile"
   private readonly SIMILARITY_THRESHOLD = 0.7
 
   async addDocument(content: string, metadata: any): Promise<string> {
@@ -106,12 +113,10 @@ class VectorService {
 
   async generateEmbedding(text: string): Promise<number[]> {
     try {
-      const response = await openai.embeddings.create({
-        model: this.EMBEDDING_MODEL,
-        input: text,
-      })
-
-      return response.data[0].embedding
+      // Note: Groq doesn't have embeddings API, using a simple hash-based approach
+      // In production, use a dedicated embedding service like OpenAI or Cohere
+      const hash = this.simpleTextToVector(text)
+      return hash
     } catch (error) {
       console.error("Error generating embedding:", error)
       throw error
@@ -232,6 +237,32 @@ class VectorService {
       console.error("Error getting documents:", error)
       return []
     }
+  }
+
+  private simpleTextToVector(text: string): number[] {
+    // Simple text to vector conversion (for demo purposes)
+    // In production, use proper embedding service
+    const words = text.toLowerCase().split(/\W+/).filter(w => w.length > 2)
+    const vector = new Array(384).fill(0)
+    
+    words.forEach((word, i) => {
+      const hash = this.simpleHash(word)
+      vector[hash % 384] += 1
+    })
+    
+    // Normalize
+    const norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0))
+    return norm > 0 ? vector.map(val => val / norm) : vector
+  }
+
+  private simpleHash(str: string): number {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32bit integer
+    }
+    return Math.abs(hash)
   }
 
   private cosineSimilarity(a: number[], b: number[]): number {

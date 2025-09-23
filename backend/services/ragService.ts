@@ -1,9 +1,16 @@
-import OpenAI from "openai"
+import Groq from "groq-sdk"
 import vectorService from "./vectorService"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+let groq: Groq | null = null
+
+function getGroqClient(): Groq {
+  if (!groq) {
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+  }
+  return groq
+}
 
 interface RAGResponse {
   reply: string
@@ -112,8 +119,8 @@ ${userContext ? `**Additional user context:**\n${userContext}` : ""}
 Generate the reply and explain your reasoning:
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -176,8 +183,8 @@ ${emailContent}
 Generate an improved version of the reply that addresses the feedback while maintaining professionalism and relevance to the original email.
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -224,8 +231,8 @@ Example:
 }
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",

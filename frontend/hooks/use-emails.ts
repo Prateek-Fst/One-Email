@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 interface Email {
   _id: string
@@ -29,34 +29,51 @@ interface UseEmailsOptions {
   accountId?: string
   category?: string
   page?: number
-  limit?: number
+  perAccount?: number
 }
 
 export function useEmails(options: UseEmailsOptions = {}) {
   const [emails, setEmails] = useState<Email[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
 
-  const fetchEmails = async () => {
+  const fetchEmails = useCallback(async (page = 1, append = false) => {
     try {
-      setLoading(true)
+      if (append) {
+        setLoadingMore(true)
+      } else {
+        setLoading(true)
+        setCurrentPage(1)
+      }
       setError(null)
 
       const params = new URLSearchParams()
       if (options.search) params.append("search", options.search)
       if (options.accountId) params.append("accountId", options.accountId)
       if (options.category) params.append("category", options.category)
-      if (options.page) params.append("page", options.page.toString())
-      if (options.limit) params.append("limit", options.limit.toString())
+      params.append("page", page.toString())
+      params.append("perAccount", (options.perAccount || 5).toString())
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/emails?${params}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}/api/emails?${params}`)
 
       if (!response.ok) {
         throw new Error("Failed to fetch emails")
       }
 
       const data = await response.json()
-      setEmails(data.emails || [])
+      const newEmails = data.emails || []
+      
+      if (append) {
+        setEmails(prev => [...prev, ...newEmails])
+        setCurrentPage(page)
+      } else {
+        setEmails(newEmails)
+      }
+      
+      setHasMore(data.pagination?.hasMore || false)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
       // Mock data for development
@@ -65,52 +82,67 @@ export function useEmails(options: UseEmailsOptions = {}) {
           _id: "1",
           subject: "Welcome to our platform!",
           from: { name: "John Doe", address: "john@example.com" },
-          to: [{ address: "you@example.com" }],
+          to: [{ address: "choudharyprateek131@gmail.com" }],
           date: new Date().toISOString(),
           body: { text: "Welcome to our amazing platform. We're excited to have you on board!" },
           isRead: false,
           aiCategory: "Interested",
           aiConfidence: 0.95,
-          accountEmail: "work@company.com",
+          accountEmail: "choudharyprateek131@gmail.com",
         },
         {
           _id: "2",
           subject: "Meeting scheduled for tomorrow",
           from: { name: "Sarah Smith", address: "sarah@company.com" },
-          to: [{ address: "you@example.com" }],
+          to: [{ address: "choudharyprateek131@gmail.com" }],
           date: new Date(Date.now() - 3600000).toISOString(),
           body: { text: "Hi, I've scheduled our meeting for tomorrow at 2 PM. Looking forward to it!" },
           isRead: true,
           aiCategory: "Meeting Booked",
           aiConfidence: 0.98,
-          accountEmail: "work@company.com",
+          accountEmail: "choudharyprateek131@gmail.com",
         },
         {
           _id: "3",
           subject: "Thanks, but not interested",
           from: { name: "Mike Johnson", address: "mike@client.com" },
-          to: [{ address: "you@example.com" }],
+          to: [{ address: "kartikchoudhary1312@gmail.com" }],
           date: new Date(Date.now() - 7200000).toISOString(),
           body: { text: "Thank you for reaching out, but we're not interested at this time." },
           isRead: true,
           aiCategory: "Not Interested",
           aiConfidence: 0.92,
-          accountEmail: "personal@gmail.com",
+          accountEmail: "kartikchoudhary1312@gmail.com",
         },
       ])
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
-  }
+  }, [options.search, options.accountId, options.category, options.perAccount])
 
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchEmails(currentPage + 1, true)
+    }
+  }, [fetchEmails, currentPage, loadingMore, hasMore])
+
+  // Debounce search queries and reset pagination
   useEffect(() => {
-    fetchEmails()
-  }, [options.search, options.accountId, options.category, options.page])
+    const timeoutId = setTimeout(() => {
+      fetchEmails(1, false)
+    }, options.search ? 300 : 0)
+
+    return () => clearTimeout(timeoutId)
+  }, [options.search, options.accountId, options.category, fetchEmails])
 
   return {
     emails,
     loading,
+    loadingMore,
     error,
-    refetch: fetchEmails,
+    hasMore,
+    loadMore,
+    refetch: () => fetchEmails(1, false),
   }
 }

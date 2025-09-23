@@ -16,11 +16,22 @@ import { errorHandler, notFound } from "./middleware/errorHandler"
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001
 
 // Middleware
-app.use(cors())
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}))
 app.use(express.json())
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`)
+  next()
+})
 
 // MongoDB connection
 mongoose
@@ -49,6 +60,11 @@ setTimeout(async () => {
     console.error("Error checking/seeding knowledge base:", error)
   }
 }, 5000)
+
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "API is working!", timestamp: new Date().toISOString() })
+})
 
 // Routes
 app.use("/api/emails", emailRoutes)

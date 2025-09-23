@@ -9,12 +9,13 @@ class ElasticsearchService {
     this.client = client
 
     try {
-      await this.client.ping()
+      const response = await this.client.ping()
+      console.log("Elasticsearch ping successful:", response)
       this.isAvailable = true
       await this.createIndex()
       console.log("Elasticsearch service initialized successfully")
     } catch (error) {
-      console.error("Elasticsearch not available:", error)
+      console.error("Elasticsearch not available:", error.message)
       this.isAvailable = false
     }
   }
@@ -23,12 +24,12 @@ class ElasticsearchService {
     if (!this.isAvailable) return
 
     try {
-      const exists = await this.client.indices.exists({
+      const { body: exists } = await this.client.indices.exists({
         index: this.indexName,
       })
 
       if (!exists) {
-        await this.client.indices.create({
+        const { body } = await this.client.indices.create({
           index: this.indexName,
           body: {
             settings: {
@@ -93,7 +94,9 @@ class ElasticsearchService {
             },
           },
         })
-        console.log("Elasticsearch index created successfully")
+        console.log("Elasticsearch index created successfully:", body)
+      } else {
+        console.log("Elasticsearch index already exists")
       }
     } catch (error) {
       console.error("Error creating Elasticsearch index:", error)

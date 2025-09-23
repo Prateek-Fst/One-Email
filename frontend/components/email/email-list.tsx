@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,9 +29,12 @@ interface Email {
 interface EmailListProps {
   emails: Email[]
   loading: boolean
+  loadingMore: boolean
   error: string | null
+  hasMore: boolean
   selectedEmailId: string | null
   onEmailSelect: (emailId: string) => void
+  onLoadMore: () => void
 }
 
 const categoryColors = {
@@ -41,7 +45,23 @@ const categoryColors = {
   "Out of Office": "bg-purple-100 text-purple-800 border-purple-200",
 }
 
-export function EmailList({ emails, loading, error, selectedEmailId, onEmailSelect }: EmailListProps) {
+export function EmailList({ emails, loading, loadingMore, error, hasMore, selectedEmailId, onEmailSelect, onLoadMore }: EmailListProps) {
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current
+    if (!scrollArea) return
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollArea
+      if (scrollHeight - scrollTop <= clientHeight + 100 && hasMore && !loadingMore) {
+        onLoadMore()
+      }
+    }
+
+    scrollArea.addEventListener('scroll', handleScroll)
+    return () => scrollArea.removeEventListener('scroll', handleScroll)
+  }, [hasMore, loadingMore, onLoadMore])
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -77,7 +97,7 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
   }
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" ref={scrollAreaRef}>
       <div className="p-4 space-y-2">
         {emails.map((email) => (
           <Button
@@ -138,6 +158,22 @@ export function EmailList({ emails, loading, error, selectedEmailId, onEmailSele
             </div>
           </Button>
         ))}
+        
+        {/* Load More Indicator */}
+        {loadingMore && (
+          <div className="flex items-center justify-center p-4">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Loading more emails...</span>
+            </div>
+          </div>
+        )}
+        
+        {!hasMore && emails.length > 0 && (
+          <div className="flex items-center justify-center p-4 text-muted-foreground text-sm">
+            No more emails to load
+          </div>
+        )}
       </div>
     </ScrollArea>
   )

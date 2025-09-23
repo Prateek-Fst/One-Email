@@ -1,9 +1,16 @@
-import OpenAI from "openai"
+import Groq from "groq-sdk"
 import Email from "../models/Email"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+let groq: Groq | null = null
+
+function getGroqClient(): Groq {
+  if (!groq) {
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    })
+  }
+  return groq
+}
 
 export interface EmailCategory {
   category: "Interested" | "Meeting Booked" | "Not Interested" | "Spam" | "Out of Office"
@@ -21,9 +28,19 @@ class AIService {
   private readonly BATCH_SIZE = 10
   private readonly MAX_RETRIES = 3
   private readonly RETRY_DELAY = 1000
+  private lastApiCall = 0
+  private readonly MIN_DELAY = 2000 // 2 seconds between API calls
 
   async categorizeEmail(email: any): Promise<EmailCategory | null> {
     try {
+      // Rate limiting: ensure minimum delay between API calls
+      const now = Date.now()
+      const timeSinceLastCall = now - this.lastApiCall
+      if (timeSinceLastCall < this.MIN_DELAY) {
+        await this.delay(this.MIN_DELAY - timeSinceLastCall)
+      }
+      this.lastApiCall = Date.now()
+
       const emailContent = this.prepareEmailContent(email)
 
       const prompt = `
@@ -53,8 +70,8 @@ Respond with only a JSON object in this exact format:
 }
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -192,8 +209,8 @@ Generate a professional, helpful reply that:
 **Reply:**
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -273,8 +290,8 @@ Response format:
 }
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -335,8 +352,8 @@ Response format:
 }
       `
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const response = await getGroqClient().chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",

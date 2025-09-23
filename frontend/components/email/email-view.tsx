@@ -98,10 +98,11 @@ export function EmailView({ email, onClose }: EmailViewProps) {
       </div>
 
       {/* Email Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-6">
-          <Card>
-            <CardHeader className="pb-4">
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-6">
+            <Card>
+              <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -130,10 +131,11 @@ export function EmailView({ email, onClose }: EmailViewProps) {
                   <div className="whitespace-pre-wrap text-pretty">{email.body.text}</div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Action Buttons */}
       <div className="border-t border-border p-4">

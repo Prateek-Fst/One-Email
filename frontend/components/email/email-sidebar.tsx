@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAccounts } from "@/hooks/use-accounts"
 import { ChevronLeft, ChevronRight, Inbox, Send, Archive, Trash2, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -33,11 +34,7 @@ const categories = [
   { id: "Out of Office", name: "Out of Office", color: "bg-purple-500" },
 ]
 
-const accounts = [
-  { id: "all", name: "All Accounts" },
-  { id: "1", name: "work@company.com" },
-  { id: "2", name: "personal@gmail.com" },
-]
+
 
 export function EmailSidebar({
   collapsed,
@@ -48,6 +45,15 @@ export function EmailSidebar({
   onCategoryChange,
 }: EmailSidebarProps) {
   const [selectedFolder, setSelectedFolder] = useState("inbox")
+  const { accounts: apiAccounts } = useAccounts()
+  
+  const accounts = [
+    { id: "all", name: "All Accounts" },
+    ...apiAccounts.map(account => ({
+      id: account._id,
+      name: account.email
+    }))
+  ]
 
   return (
     <div

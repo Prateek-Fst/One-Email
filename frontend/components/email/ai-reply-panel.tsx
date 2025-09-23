@@ -37,7 +37,7 @@ export function AIReplyPanel({ emailId, onUseReply }: AIReplyPanelProps) {
     try {
       setLoading(true)
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/rag/replies/${emailId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}/api/rag/replies/${emailId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -61,7 +61,7 @@ export function AIReplyPanel({ emailId, onUseReply }: AIReplyPanelProps) {
 
     try {
       setLoading(true)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/rag/improve`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}/api/rag/improve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

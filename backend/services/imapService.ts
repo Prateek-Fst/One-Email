@@ -82,25 +82,25 @@ class ImapService {
       account.syncStatus = "syncing"
       await account.save()
 
-      // Fetch emails from last 30 days
-      const thirtyDaysAgo = new Date()
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
       imap.openBox("INBOX", true, (err) => {
         if (err) throw err
 
-        imap.search(["SINCE", thirtyDaysAgo], (err, results) => {
+        // Get the last 50 emails instead of using SINCE
+        imap.search(["ALL"], (err, results) => {
           if (err) throw err
 
           if (results.length === 0) {
-            console.log(`No recent emails found for ${account.email}`)
+            console.log(`No emails found for ${account.email}`)
             account.syncStatus = "idle"
             account.lastSyncDate = new Date()
             account.save()
             return
           }
 
-          this.processEmails(imap, account, results)
+          // Get the last 10 emails (most recent) to avoid rate limits
+          const recentEmails = results.slice(-10)
+          console.log(`Found ${results.length} total emails, processing last ${recentEmails.length} for ${account.email}`)
+          this.processEmails(imap, account, recentEmails)
         })
       })
     } catch (error) {
@@ -119,7 +119,8 @@ class ImapService {
       }
 
       if (results.length > 0) {
-        this.processEmails(imap, account, results.slice(-count))
+        // Limit new emails to 5 to avoid rate limits
+        this.processEmails(imap, account, results.slice(-Math.min(count, 5)))
       }
     })
   }
@@ -195,18 +196,41 @@ class ImapService {
           // Index in Elasticsearch
           await elasticsearchService.indexEmail(emailDoc)
 
-          // AI categorization
-          const category = await aiService.categorizeEmail(emailDoc)
-          if (category) {
-            emailDoc.aiCategory = category.category
-            emailDoc.aiConfidence = category.confidence
-            await emailDoc.save()
+          // AI categorization with rate limiting
+          setTimeout(async () => {
+            try {
+              const category = await aiService.categorizeEmail(emailDoc)
+              if (category) {
+                emailDoc.aiCategory = category.category
+                emailDoc.aiConfidence = category.confidence
+                await emailDoc.save()
 
-            // Send webhook for interested emails
-            if (category.category === "Interested") {
-              await webhookService.sendInterestedNotification(emailDoc)
+                // Send webhook for interested emails
+                if (category.category === "Interested") {
+                  await webhookService.sendInterestedNotification(emailDoc)
+                }
+              }
+            } catch (error) {
+              if (error.status === 429) {
+                console.log(`Rate limited for ${parsed.subject}, will retry later`)
+                // Retry after 2 minutes
+                setTimeout(async () => {
+                  try {
+                    const category = await aiService.categorizeEmail(emailDoc)
+                    if (category) {
+                      emailDoc.aiCategory = category.category
+                      emailDoc.aiConfidence = category.confidence
+                      await emailDoc.save()
+                    }
+                  } catch (retryError) {
+                    console.log(`Failed to categorize after retry: ${parsed.subject}`)
+                  }
+                }, 120000) // 2 minutes
+              } else {
+                console.error('AI categorization error:', error)
+              }
             }
-          }
+          }, seqno * 3000) // 3 second delay between each email
 
           console.log(`Processed email: ${parsed.subject}`)
         } catch (error) {
