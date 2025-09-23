@@ -14,7 +14,7 @@ class ElasticsearchService {
       this.isAvailable = true
       await this.createIndex()
       console.log("Elasticsearch service initialized successfully")
-    } catch (error) {
+    } catch (error:any) {
       console.error("Elasticsearch not available:", error.message)
       this.isAvailable = false
     }
@@ -24,12 +24,12 @@ class ElasticsearchService {
     if (!this.isAvailable) return
 
     try {
-      const { body: exists } = await this.client.indices.exists({
+      const exists = await this.client.indices.exists({
         index: this.indexName,
       })
 
       if (!exists) {
-        const { body } = await this.client.indices.create({
+        const response = await this.client.indices.create({
           index: this.indexName,
           body: {
             settings: {
@@ -94,7 +94,7 @@ class ElasticsearchService {
             },
           },
         })
-        console.log("Elasticsearch index created successfully:", body)
+        console.log("Elasticsearch index created successfully:", response)
       } else {
         console.log("Elasticsearch index already exists")
       }
@@ -224,7 +224,7 @@ class ElasticsearchService {
         body: searchBody,
       })
 
-      return response.body.hits
+      return response.hits
     } catch (error) {
       console.error("Error searching emails:", error)
       return { hits: [], total: { value: 0 } }
@@ -290,7 +290,7 @@ class ElasticsearchService {
         },
       })
 
-      return response.body.aggregations
+      return response.aggregations
     } catch (error) {
       console.error("Error getting Elasticsearch stats:", error)
       return null

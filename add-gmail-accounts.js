@@ -1,9 +1,6 @@
-// Run this script to add your Gmail accounts
-// Usage: node add-gmail-accounts.js
-
 const mongoose = require('mongoose');
 
-// Account schema (same as in your backend)
+
 const accountSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   imapConfig: {
@@ -22,31 +19,31 @@ const Account = mongoose.model('Account', accountSchema);
 
 async function addGmailAccounts() {
   try {
-    // Connect to MongoDB
-    await mongoose.connect('mongodb+srv://choudharyprateek131:9927729187@cluster0.nkeq4ce.mongodb.net/email-onebox');
+
+    await mongoose.connect("mongo connectionstring");
     console.log('Connected to MongoDB');
 
-    // Add your Gmail accounts here
+
     const accounts = [
       {
-        email: 'choudharyprateek131@gmail.com',
+        email: 'youraccount@gmail.com',
         imapConfig: {
           host: 'imap.gmail.com',
           port: 993,
           secure: true,
-          username: 'choudharyprateek131@gmail.com',
-          password: 'rbty nxwf dsnw ozak' // 16-character app password
+          username: 'youraccount@gmail.com',
+          password: 'password' // 16-character app password
         }
       },
       // Add second account when you have another Gmail
       {
-        email: 'kartikchoudhary1312@gmail.com',
+        email: 'youraccount@gmail.com',
         imapConfig: {
           host: 'imap.gmail.com',
           port: 993,
           secure: true,
-          username: 'kartikchoudhary1312@gmail.com',
-          password: 'qulc ispy waxi fliu'
+          username: 'youraccount@gmail.com',
+          password: 'password'
         }
       }
     ];

@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 5001
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
+  origin: process.env.NODE_ENV === 'production' ? true : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -42,6 +42,11 @@ mongoose
 // Elasticsearch connection
 const esClient = new Client({
   node: process.env.ELASTICSEARCH_URL || "http://localhost:9200",
+  ...(process.env.ELASTICSEARCH_API_KEY && {
+    auth: {
+      apiKey: process.env.ELASTICSEARCH_API_KEY
+    }
+  }),
 })
 
 // Initialize services

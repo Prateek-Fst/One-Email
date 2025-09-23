@@ -33,13 +33,13 @@ export function useAccounts() {
       setAccounts([
         {
           _id: "1",
-          email: "choudharyprateek131@gmail.com",
+          email: "test1@gmail.com",
           isActive: true,
           syncStatus: "idle"
         },
         {
           _id: "2", 
-          email: "kartikchoudhary1312@gmail.com",
+          email: "text2@gmail.com",
           isActive: true,
           syncStatus: "idle"
         }

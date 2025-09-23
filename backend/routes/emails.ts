@@ -25,13 +25,17 @@ router.post("/search", async (req, res) => {
       .limit(Number(limit))
       .skip((Number(page) - 1) * Number(limit))
 
+    const totalValue = typeof searchResults.total === 'number' 
+      ? searchResults.total 
+      : searchResults.total?.value || 0
+    
     res.json({
       emails,
-      total: searchResults.total.value,
+      total: totalValue,
       pagination: {
         page: Number(page),
         limit: Number(limit),
-        pages: Math.ceil(searchResults.total.value / Number(limit)),
+        pages: Math.ceil(totalValue / Number(limit)),
       },
     })
   } catch (error) {
@@ -262,7 +266,9 @@ router.get("/", async (req, res) => {
         emails = await Email.find({ _id: { $in: emailIds } })
           .populate("accountId", "email")
           .sort({ date: -1 })
-        total = searchResults.total.value
+        total = typeof searchResults.total === 'number' 
+          ? searchResults.total 
+          : searchResults.total?.value || 0
       } else {
         const query: any = { accountId }
         if (folder) query.folder = folder

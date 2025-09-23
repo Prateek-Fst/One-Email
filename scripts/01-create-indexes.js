@@ -1,7 +1,8 @@
 // MongoDB indexes for optimal performance
-// Run this script in MongoDB shell or through Node.js
+// Run this script with: mongosh "mongodb+srv://..." --file 01-create-indexes.js
 
-const db = require("mongodb").MongoClient.connect("mongodb://localhost:27017/mydatabase").db()
+// Switch to email-onebox database
+use('email-onebox')
 
 // Email collection indexes
 db.emails.createIndex({ messageId: 1 }, { unique: true })
@@ -30,4 +31,4 @@ db.accounts.createIndex({ email: 1 }, { unique: true })
 db.accounts.createIndex({ isActive: 1 })
 db.accounts.createIndex({ syncStatus: 1 })
 
-console.log("MongoDB indexes created successfully")
+print("MongoDB indexes created successfully")

@@ -11,9 +11,9 @@ export class DatabaseConfig {
     }
 
     try {
-      const uri = process.env.MONGODB_URI || "mongodb+srv://choudharyprateek131:9927729187@cluster0.nkeq4ce.mongodb.net/email-onebox"
+      const uri = process.env.MONGODB_URI;
 
-      this.mongoConnection = await mongoose.connect(uri, {
+      this.mongoConnection = await mongoose.connect(uri as any, {
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,

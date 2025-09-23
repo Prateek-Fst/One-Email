@@ -36,23 +36,23 @@ export class EmailParser {
         messageId: parsed.messageId || `generated-${Date.now()}`,
         subject: parsed.subject || "No Subject",
         from: {
-          name: parsed.from?.value?.[0]?.name,
-          address: parsed.from?.value?.[0]?.address || "unknown@unknown.com",
+          name: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.name : (parsed.from as any)?.name,
+          address: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.address : (parsed.from as any)?.address || "unknown@unknown.com",
         },
         to:
-          parsed.to?.value?.map((addr: any) => ({
-            name: addr.name,
-            address: addr.address,
-          })) || [],
+          (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : []).map((addr: any) => ({
+            name: (addr as any).name,
+            address: (addr as any).address,
+          })),
         cc:
-          parsed.cc?.value?.map((addr: any) => ({
-            name: addr.name,
-            address: addr.address,
-          })) || undefined,
+          parsed.cc ? (Array.isArray(parsed.cc) ? parsed.cc : [parsed.cc]).map((addr: any) => ({
+            name: (addr as any).name,
+            address: (addr as any).address,
+          })) : undefined,
         date: parsed.date || new Date(),
         body: {
           text: parsed.text,
-          html: parsed.html,
+          html: parsed.html || undefined,
         },
         attachments: parsed.attachments?.map((att: any) => ({
           filename: att.filename || "unknown",

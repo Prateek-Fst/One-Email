@@ -196,7 +196,7 @@ class WebhookService {
         throw new Error("No webhook URL provided")
       }
 
-      const testPayload = {
+      const testPayload: WebhookPayload = {
         event: "test_webhook",
         timestamp: new Date().toISOString(),
         data: {
@@ -206,7 +206,7 @@ class WebhookService {
         },
       }
 
-      testPayload.data.signature = this.generateSignature(JSON.stringify(testPayload.data))
+      testPayload.signature = this.generateSignature(JSON.stringify(testPayload.data))
 
       await this.sendWithRetry(testUrl, testPayload)
       console.log("Test webhook sent successfully")
@@ -252,13 +252,13 @@ class WebhookService {
   private async sendSlackBulkSummary(summary: any) {
     const categoryFields = Object.entries(summary.byCategory).map(([category, count]) => ({
       title: category,
-      value: count.toString(),
+      value: (count as number).toString(),
       short: true,
     }))
 
     const accountFields = Object.entries(summary.byAccount).map(([account, count]) => ({
       title: account,
-      value: count.toString(),
+      value: (count as number).toString(),
       short: true,
     }))
 
@@ -289,7 +289,7 @@ class WebhookService {
     await this.sendWithRetry(process.env.SLACK_WEBHOOK_URL!, message)
   }
 
-  private async sendWithRetry(url: string, payload: any, headers: Record<string, string> = {}, retries = 0) {
+  private async sendWithRetry(url: string, payload: any, headers: Record<string, string> = {}, retries = 0): Promise<any> {
     try {
       const response = await axios.post(url, payload, {
         headers: {
