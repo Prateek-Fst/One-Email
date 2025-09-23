@@ -68,7 +68,7 @@ class VectorService {
       })
 
       await document.save()
-      return document._id.toString()
+      return (document._id as any).toString()
     } catch (error) {
       console.error("Error adding document to vector store:", error)
       throw error
@@ -228,7 +228,7 @@ class VectorService {
       const documents = await VectorDocument.find(filter).sort({ "metadata.priority": -1, createdAt: -1 })
 
       return documents.map((doc) => ({
-        id: doc._id,
+        id: (doc._id as any),
         content: doc.content,
         metadata: doc.metadata,
         createdAt: doc.createdAt,
