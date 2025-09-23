@@ -11,14 +11,13 @@ export class DatabaseConfig {
     }
 
     try {
-      const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/email-onebox"
+      const uri = process.env.MONGODB_URI || "mongodb+srv://choudharyprateek131:9927729187@cluster0.nkeq4ce.mongodb.net/email-onebox"
 
       this.mongoConnection = await mongoose.connect(uri, {
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
         bufferCommands: false,
-        bufferMaxEntries: 0,
       })
 
       console.log("MongoDB connected successfully")
@@ -102,7 +101,7 @@ export class DatabaseConfig {
 
     try {
       const health = await this.esClient.cluster.health()
-      return health.body
+      return health
     } catch (error) {
       return null
     }

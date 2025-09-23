@@ -54,7 +54,7 @@ A feature-rich email aggregator built with the MERN stack that synchronizes mult
 
    Or run them separately:
    \`\`\`bash
-   # Terminal 1 - Backend (port 5000)
+   # Terminal 1 - Backend (port 5001)
    npm run dev:backend
    
    # Terminal 2 - Frontend (port 3000)
@@ -119,7 +119,7 @@ Emails are automatically categorized into:
 \`\`\`
 Frontend (React/Next.js) :3000
     ↓
-Backend API (Express) :5000
+Backend API (Express) :5001
     ↓
 ┌─────────────┬─────────────────┐
 │  MongoDB    │  Elasticsearch  │
@@ -153,7 +153,7 @@ Webhooks (Slack, External)
 
 ### Backend (.env)
 \`\`\`
-PORT=5000
+PORT=5001
 MONGODB_URI=mongodb://localhost:27017/email-onebox
 ELASTICSEARCH_URL=http://localhost:9200
 OPENAI_API_KEY=your_openai_api_key
@@ -164,7 +164,7 @@ WEBHOOK_SECRET=your_webhook_secret
 
 ### Frontend (.env.local)
 \`\`\`
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5001
 \`\`\`
 
 ## Deployment

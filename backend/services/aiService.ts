@@ -154,7 +154,7 @@ Respond with only a JSON object in this exact format:
       $or: [{ aiCategory: { $exists: false } }, { aiCategory: null }],
     }).select("_id")
 
-    const emailIds = uncategorizedEmails.map((email) => email._id.toString())
+    const emailIds = uncategorizedEmails.map((email:any) => email._id.toString())
     const results = await this.batchCategorizeEmails(emailIds)
 
     let successful = 0
@@ -252,7 +252,7 @@ Generate a professional, helpful reply that:
 
         // Add delay to respect rate limits
         await this.delay(200)
-      } catch (error) {
+      } catch (error:any) {
         results.push({
           emailId,
           reply: null,

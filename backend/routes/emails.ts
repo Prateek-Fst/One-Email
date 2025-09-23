@@ -93,7 +93,7 @@ router.get("/accounts", async (req, res) => {
     const accounts = await Account.find({}, "-imapConfig.password")
     console.log(`Found ${accounts.length} accounts`)
     res.json(accounts)
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error fetching accounts:", error)
     console.error("Error details:", error.message)
     res.status(500).json({ error: "Failed to fetch accounts", details: error.message })
@@ -164,7 +164,7 @@ router.patch("/accounts/:id", async (req, res) => {
       if (isActive) {
         await imapService.connectAccount(account)
       } else {
-        await imapService.disconnectAccount(account._id.toString())
+        await imapService.disconnectAccount((account._id as any).toString())
       }
     }
 
@@ -186,7 +186,7 @@ router.delete("/accounts/:id", async (req, res) => {
     }
 
     // Disconnect IMAP
-    await imapService.disconnectAccount(account._id.toString())
+    await imapService.disconnectAccount((account._id as any).toString())
 
     // Delete account and associated emails
     await Email.deleteMany({ accountId: account._id })
@@ -209,7 +209,7 @@ router.post("/accounts/:id/sync", async (req, res) => {
     }
 
     // Reconnect to force sync
-    await imapService.disconnectAccount(account._id.toString())
+    await imapService.disconnectAccount((account._id as any).toString())
     await imapService.connectAccount(account)
 
     res.json({ message: "Sync initiated successfully" })
@@ -230,7 +230,7 @@ router.get("/elasticsearch/test", async (req, res) => {
       stats,
       message: isHealthy ? "Elasticsearch is working!" : "Elasticsearch is not available"
     })
-  } catch (error) {
+  } catch (error:any) {
     console.error("Elasticsearch test error:", error)
     res.status(500).json({ error: "Elasticsearch test failed", details: error.message })
   }
@@ -338,13 +338,20 @@ router.get("/", async (req, res) => {
       total = Math.min(...accountTotals) * accounts.length // Use minimum to determine when to stop loading
     }
 
+    const activeAccountCount = await Account.countDocuments({ isActive: true })
+    const expectedEmailCount = accountId && accountId !== "all" 
+      ? Number(perAccount) * 2 
+      : Number(perAccount) * activeAccountCount
+    
+    console.log(`Page ${page}: Found ${emails.length} emails, expected ${expectedEmailCount}, hasMore: ${emails.length >= expectedEmailCount}`)
+    
     res.json({
       emails,
       pagination: {
         page: Number(page),
         perAccount: Number(perAccount),
         total,
-        hasMore: emails.length === (accountId && accountId !== "all" ? Number(perAccount) * 2 : Number(perAccount) * (await Account.countDocuments({ isActive: true }))),
+        hasMore: emails.length >= expectedEmailCount,
       },
       searchEngine: search ? (elasticsearchService.isHealthy() ? "elasticsearch" : "mongodb") : "mongodb"
     })

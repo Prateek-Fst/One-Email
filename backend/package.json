@@ -24,7 +24,7 @@
     "groq-sdk": "^0.32.0",
     "imap": "latest",
     "kerberos": "latest",
-    "mailparser": "latest",
+    "mailparser": "^3.7.4",
     "mongodb": "latest",
     "mongodb-client-encryption": "latest",
     "mongoose": "latest",
@@ -37,6 +37,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/imap": "^0.8.40",
+    "@types/mailparser": "^3.4.6",
     "@types/node": "^22",
     "typescript": "^5"
   }

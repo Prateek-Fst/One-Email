@@ -42,6 +42,7 @@ export function useEmails(options: UseEmailsOptions = {}) {
 
   const fetchEmails = useCallback(async (page = 1, append = false) => {
     try {
+      console.log(`Fetching emails - Page: ${page}, Append: ${append}, Account: ${options.accountId}`)
       if (append) {
         setLoadingMore(true)
       } else {
@@ -57,14 +58,21 @@ export function useEmails(options: UseEmailsOptions = {}) {
       params.append("page", page.toString())
       params.append("perAccount", (options.perAccount || 5).toString())
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}/api/emails?${params}`)
+      const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001"}/api/emails?${params}`
+      console.log('Fetching URL:', url)
+      
+      const response = await fetch(url)
 
       if (!response.ok) {
-        throw new Error("Failed to fetch emails")
+        const errorText = await response.text()
+        console.error('API Error:', response.status, errorText)
+        throw new Error(`Failed to fetch emails: ${response.status} ${errorText}`)
       }
 
       const data = await response.json()
       const newEmails = data.emails || []
+      
+      console.log(`API Response - Page: ${page}, Emails: ${newEmails.length}, HasMore: ${data.pagination?.hasMore}`)
       
       if (append) {
         setEmails(prev => [...prev, ...newEmails])
@@ -75,6 +83,7 @@ export function useEmails(options: UseEmailsOptions = {}) {
       
       setHasMore(data.pagination?.hasMore || false)
     } catch (err) {
+      console.error('Fetch error:', err)
       setError(err instanceof Error ? err.message : "An error occurred")
       // Mock data for development
       setEmails([

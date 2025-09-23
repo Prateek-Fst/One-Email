@@ -103,7 +103,7 @@ class ImapService {
           this.processEmails(imap, account, recentEmails)
         })
       })
-    } catch (error) {
+    } catch (error:any) {
       console.error(`Error syncing emails for ${account.email}:`, error)
       account.syncStatus = "error"
       account.errorMessage = error.message
@@ -166,19 +166,19 @@ class ImapService {
             accountEmail: account.email,
             subject: parsed.subject || "No Subject",
             from: {
-              name: parsed.from?.value[0]?.name,
-              address: parsed.from?.value[0]?.address,
+              name: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.name : (parsed.from as any)?.name,
+              address: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.address : (parsed.from as any)?.address,
             },
             to:
-              parsed.to?.value?.map((addr: any) => ({
-                name: addr.name,
-                address: addr.address,
-              })) || [],
+              (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : []).map((addr: any) => ({
+                name: (addr as any).name,
+                address: (addr as any).address,
+              })),
             cc:
-              parsed.cc?.value?.map((addr: any) => ({
-                name: addr.name,
-                address: addr.address,
-              })) || [],
+              (Array.isArray(parsed.cc) ? parsed.cc : parsed.cc ? [parsed.cc] : []).map((addr: any) => ({
+                name: (addr as any).name,
+                address: (addr as any).address,
+              })),
             date: parsed.date || new Date(),
             body: {
               text: parsed.text,
@@ -210,7 +210,7 @@ class ImapService {
                   await webhookService.sendInterestedNotification(emailDoc)
                 }
               }
-            } catch (error) {
+            } catch (error:any) {
               if (error.status === 429) {
                 console.log(`Rate limited for ${parsed.subject}, will retry later`)
                 // Retry after 2 minutes

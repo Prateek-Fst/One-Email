@@ -48,19 +48,25 @@ const categoryColors = {
 export function EmailList({ emails, loading, loadingMore, error, hasMore, selectedEmailId, onEmailSelect, onLoadMore }: EmailListProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    const scrollArea = scrollAreaRef.current
-    if (!scrollArea) return
+    const loadMoreElement = loadMoreRef.current
+    if (!loadMoreElement) return
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollArea
-      if (scrollHeight - scrollTop <= clientHeight + 100 && hasMore && !loadingMore) {
-        onLoadMore()
-      }
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting && hasMore && !loadingMore) {
+          console.log('Load more triggered by intersection')
+          onLoadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
 
-    scrollArea.addEventListener('scroll', handleScroll)
-    return () => scrollArea.removeEventListener('scroll', handleScroll)
+    observer.observe(loadMoreElement)
+    return () => observer.disconnect()
   }, [hasMore, loadingMore, onLoadMore])
   if (loading) {
     return (
@@ -97,7 +103,7 @@ export function EmailList({ emails, loading, loadingMore, error, hasMore, select
   }
 
   return (
-    <ScrollArea className="h-full" ref={scrollAreaRef}>
+    <ScrollArea className="h-full">
       <div className="p-4 space-y-2">
         {emails.map((email) => (
           <Button
@@ -168,6 +174,9 @@ export function EmailList({ emails, loading, loadingMore, error, hasMore, select
             </div>
           </div>
         )}
+        
+        {/* Intersection Observer Target */}
+        <div ref={loadMoreRef} className="h-4" />
         
         {!hasMore && emails.length > 0 && (
           <div className="flex items-center justify-center p-4 text-muted-foreground text-sm">
