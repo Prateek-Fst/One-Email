@@ -43,7 +43,7 @@ export default function EmailOnebox() {
         {/* Email Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Email List */}
-          <div className="w-96 border-r border-border bg-card">
+          <div className="w-120 border-r border-border bg-card">
             <EmailList
               emails={emails}
               loading={loading}
