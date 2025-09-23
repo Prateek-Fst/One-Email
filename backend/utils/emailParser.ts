@@ -42,13 +42,13 @@ export class EmailParser {
         to:
           (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : []).map((addr: any) => ({
             name: (addr as any).name,
-            address: (addr as any).address,
-          })),
+            address: (addr as any).address || "unknown@unknown.com",
+          })).filter(addr => addr.address),
         cc:
           parsed.cc ? (Array.isArray(parsed.cc) ? parsed.cc : [parsed.cc]).map((addr: any) => ({
             name: (addr as any).name,
-            address: (addr as any).address,
-          })) : undefined,
+            address: (addr as any).address || "unknown@unknown.com",
+          })).filter(addr => addr.address) : undefined,
         date: parsed.date || new Date(),
         body: {
           text: parsed.text,

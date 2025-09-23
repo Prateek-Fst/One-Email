@@ -159,26 +159,46 @@ class ImapService {
             return // Skip if already processed
           }
 
+          // Validate required fields
+          const fromAddress = Array.isArray(parsed.from) 
+            ? (parsed.from[0] as any)?.address 
+            : (parsed.from as any)?.address
+          
+          if (!fromAddress) {
+            console.log(`Skipping email with missing from address: ${parsed.subject}`)
+            return
+          }
+
+          const toAddresses = (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : [])
+            .map((addr: any) => ({
+              name: (addr as any).name,
+              address: (addr as any).address,
+            }))
+            .filter(addr => addr.address)
+
+          if (toAddresses.length === 0) {
+            console.log(`Skipping email with no valid to addresses: ${parsed.subject}`)
+            return
+          }
+
           // Create email document
           const emailDoc = new Email({
-            messageId: parsed.messageId,
+            messageId: parsed.messageId || `generated-${Date.now()}-${Math.random()}`,
             accountId: account._id,
             accountEmail: account.email,
             subject: parsed.subject || "No Subject",
             from: {
               name: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.name : (parsed.from as any)?.name,
-              address: Array.isArray(parsed.from) ? (parsed.from[0] as any)?.address : (parsed.from as any)?.address,
+              address: fromAddress,
             },
-            to:
-              (Array.isArray(parsed.to) ? parsed.to : parsed.to ? [parsed.to] : []).map((addr: any) => ({
-                name: (addr as any).name,
-                address: (addr as any).address,
-              })),
+            to: toAddresses,
             cc:
-              (Array.isArray(parsed.cc) ? parsed.cc : parsed.cc ? [parsed.cc] : []).map((addr: any) => ({
-                name: (addr as any).name,
-                address: (addr as any).address,
-              })),
+              (Array.isArray(parsed.cc) ? parsed.cc : parsed.cc ? [parsed.cc] : [])
+                .map((addr: any) => ({
+                  name: (addr as any).name,
+                  address: (addr as any).address,
+                }))
+                .filter(addr => addr.address),
             date: parsed.date || new Date(),
             body: {
               text: parsed.text,
